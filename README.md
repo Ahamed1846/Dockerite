@@ -134,17 +134,6 @@ The frontend runs at:
 * Node.js 18+
 * Any modern OS (Linux/Mac/Windows)
 
-## Why This Project Is Useful
+## Closing Notes
 
-Dockerite demonstrates practical knowledge in:
-
-* Real-time systems
-* Docker Engine APIs
-* Streaming data
-* Graphs and analytics
-* WebSockets
-* Full-stack architecture
-* Production-level UI/UX patterns
-* Docker lifecycle and containerization concepts
-
-It's a strong project to display in a portfolio or resume for backend, frontend, or full-stack roles.
+Dockerite is a complete Docker management tool.
