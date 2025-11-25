@@ -13,10 +13,14 @@ app.use(express.json());
 const containerRoutes = require("./routes/containerRoutes");
 const imageRoutes = require("./routes/imageRoutes");
 const systemRoutes = require("./routes/systemRoutes");
+const volumeRoutes = require("./routes/volumeRoutes");
+const networkRoutes = require("./routes/networkRoutes");
 
 app.use("/api/containers", containerRoutes);
 app.use("/api/images", imageRoutes);
 app.use("/api/system", systemRoutes);
+app.use("/api/volumes", volumeRoutes);
+app.use("/api/networks", networkRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

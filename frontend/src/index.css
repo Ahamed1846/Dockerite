@@ -1,16 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #0f0f17;
-  --bg-secondary: #161622;
-  --bg-tertiary: #1e1e2d;
+  /* Backgrounds */
+  --bg-primary: #1f1f23;      /* main surface (ChatGPT’s dark canvas) */
+  --bg-secondary: #2a2a2e;    /* sidebar / elevated surfaces */
+  --bg-tertiary: #34343a;     /* hover / active states   */
 
-  --txt-primary: #e3e3e9;
-  --txt-secondary: #9ca3af;
+  /* Text */
+  --txt-primary: #ececf1;     /* high-quality soft white */
+  --txt-secondary: #9ca0a9;   /* ChatGPT’s muted gray */
 
-  --border-color: rgba(255, 255, 255, 0.06);
+  /* Border */
+  --border-color: rgba(255, 255, 255, 0.08);
+
+  /* Accents */
+  --accent-blue: #4ea2f5;     /* GPT’s soft blue highlight */
+  --accent-cyan: #2dd4d7;
+  --accent-purple: #a78bfa;
 }
 
 * {
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.20s ease,
+              color 0.20s ease,
+              border-color 0.20s ease,
+              box-shadow 0.20s ease;
+}
+
+/* HIDE TERMINAL SCROLLBAR */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.custom-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
