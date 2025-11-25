@@ -1,10 +1,14 @@
 import useContainers from "../hooks/useContainers";
+import useDockerStatus from "../hooks/useDockerStatus";
+import DockerOffline from "../components/DockerOffline";
+
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import CreateContainerModal from "../components/CreateContainerModal";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+
 import {
+  Plus,
   Play,
   Square,
   RefreshCw,
@@ -15,158 +19,377 @@ import {
 
 export default function Containers() {
   const { containers, loading, refresh } = useContainers();
+  const { dockerDown, checking, refreshDockerStatus } = useDockerStatus();
+
   const [modalOpen, setModalOpen] = useState(false);
+  const [loadingActions, setLoadingActions] = useState({});
 
-  if (loading) return <div className="text-xl">Loading...</div>;
+  /* LOADING STATE */
+  if (loading || checking)
+    return (
+      <div className="p-10 text-xl text-[var(--txt-secondary)]">
+        Loading...
+      </div>
+    );
 
+  /* DOCKER OFFLINE */
+  if (dockerDown) {
+    return <DockerOffline onRetry={refreshDockerStatus} />;
+  }
+
+  /* BADGE STYLES */
   const statusBadge = (state) => {
-    const base = "px-3 py-1 rounded-full text-sm font-medium";
+    const base =
+      "px-3 py-1 rounded-full text-sm font-medium border backdrop-blur-sm";
 
     if (state === "running")
-      return `${base} bg-green-700/30 text-green-400 border border-green-700/40`;
+      return `${base} bg-green-500/10 text-green-400 border-green-600/30`;
 
     if (state === "exited")
-      return `${base} bg-red-700/30 text-red-400 border border-red-700/40`;
+      return `${base} bg-red-500/10 text-red-400 border-red-600/30`;
 
-    return `${base} bg-gray-700/30 text-gray-300 border border-gray-700/40`;
+    return `${base} bg-gray-500/10 text-gray-300 border-gray-600/30`;
   };
 
+  /* PAGE */
   return (
-    <div className="text-[var(--txt-primary)]">
-      <div className="flex justify-between mb-8">
-        <h1 className="text-3xl font-bold">Containers</h1>
+    <div className="text-[var(--txt-primary)] space-y-10">
+      {/* HEADER */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Containers</h1>
+          <p className="text-[var(--txt-secondary)] mt-1">
+            Manage active and stopped containers.
+          </p>
+        </div>
 
         <div className="flex gap-3">
           <button
             onClick={() => setModalOpen(true)}
-            className="px-4 py-2 bg-green-600 rounded hover:bg-green-700 transition-all flex items-center gap-2"
+            className="
+              px-4 py-2 flex items-center gap-2
+              rounded-lg border border-[var(--border-color)]
+              bg-[var(--bg-secondary)]
+              hover:bg-[var(--bg-tertiary)]
+              transition-all
+            "
           >
             <Plus size={18} />
-            Create Container
+            Create
           </button>
 
           <button
             onClick={refresh}
-            className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 transition-all"
+            className="
+              px-4 py-2 flex items-center gap-2
+              rounded-lg bg-[var(--bg-secondary)]
+              border border-[var(--border-color)]
+              hover:bg-[var(--bg-tertiary)]
+              transition-all
+            "
           >
+            <RefreshCw size={18} />
             Refresh
           </button>
         </div>
       </div>
 
+      {/* MODAL */}
       <CreateContainerModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onCreated={refresh}
       />
 
-      <div className="overflow-hidden rounded border border-[var(--border-color)]">
-        <table className="w-full border-collapse">
-          <thead className="bg-[var(--bg-secondary)] text-[var(--txt-secondary)]">
-            <tr>
-              <th className="px-4 py-3 text-left">Name</th>
-              <th className="px-4 py-3 text-left">Image</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Actions</th>
-            </tr>
-          </thead>
+      {/* EMPTY STATE */}
+      {containers.length === 0 && (
+        <div
+          className="
+            p-12 mt-6 rounded-2xl border border-[var(--border-color)]
+            bg-[var(--bg-secondary)] text-center shadow-sm
+          "
+        >
+          <p className="text-lg text-[var(--txt-secondary)] mb-4">
+            No containers found.
+          </p>
+        </div>
+      )}
 
-          <tbody>
-            {containers.map((c) => {
-              const name = c.Names?.[0]?.replace("/", "") || "Unnamed";
+      {/* TABLE */}
+      {containers.length > 0 && (
+        <div
+          className="
+            overflow-hidden rounded-2xl border border-[var(--border-color)]
+            bg-[var(--bg-secondary)] shadow-sm
+          "
+        >
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-[var(--bg-secondary)] text-[var(--txt-secondary)]">
+                <th className="px-5 py-4 text-left font-medium">Name</th>
+                <th className="px-5 py-4 text-left font-medium">Image</th>
+                <th className="px-5 py-4 text-left font-medium">Status</th>
+                <th className="px-5 py-4 text-left font-medium">Actions</th>
+              </tr>
+            </thead>
 
-              return (
-                <tr
-                  key={c.Id}
-                  className="border-t border-[var(--border-color)] hover:bg-[var(--bg-tertiary)] transition-all"
-                >
-                  <td className="px-4 py-3">{name}</td>
+            <tbody>
+              {containers.map((c) => {
+                const name = c.Names?.[0]?.replace("/", "") || "Unnamed";
+                const loading = loadingActions[c.Id];
 
-                  <td className="px-4 py-3">{c.Image}</td>
+                return (
+                  <tr
+                    key={c.Id}
+                    className={`
+                      border-t border-[var(--border-color)]
+                      transition-all
+                      ${
+                        loading
+                          ? "opacity-60 pointer-events-none"
+                          : "hover:bg-[var(--bg-tertiary)]/60"
+                      }
+                    `}
+                  >
+                    <td className="px-5 py-4 font-medium">{name}</td>
 
-                  <td className="px-4 py-3">
-                    <span className={statusBadge(c.State)}>
-                      {c.State.charAt(0).toUpperCase() + c.State.slice(1)}
-                    </span>
-                  </td>
+                    <td className="px-5 py-4 text-[var(--txt-secondary)]">
+                      {c.Image}
+                    </td>
 
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2 flex-wrap">
+                    <td className="px-5 py-4">
+                      <span className={statusBadge(c.State)}>
+                        {c.State.charAt(0).toUpperCase() + c.State.slice(1)}
+                      </span>
+                    </td>
 
-                      {/* Start */}
-                      {c.State !== "running" && (
-                        <button
-                          onClick={() =>
-                            api.post(`/containers/${c.Id}/start`).then(refresh)
-                          }
-                          className="px-3 py-1 rounded bg-green-700/30 border border-green-700/40 text-green-400 hover:bg-green-700/40 transition-all flex items-center gap-1"
-                        >
-                          <Play size={16} />
-                          Start
-                        </button>
-                      )}
+                    <td className="px-5 py-4">
+                      <div className="flex flex-wrap gap-2">
+                        {/* START */}
+                        {c.State !== "running" && !loading && (
+                          <ActionButton
+                            color="green"
+                            icon={<Play size={15} />}
+                            label="Start"
+                            onClick={() => {
+                              setLoadingActions((p) => ({
+                                ...p,
+                                [c.Id]: "starting",
+                              }));
 
-                      {/* Stop */}
-                      {c.State === "running" && (
-                        <button
-                          onClick={() =>
-                            api.post(`/containers/${c.Id}/stop`).then(refresh)
-                          }
-                          className="px-3 py-1 rounded bg-red-700/30 border border-red-700/40 text-red-400 hover:bg-red-700/40 transition-all flex items-center gap-1"
-                        >
-                          <Square size={16} />
-                          Stop
-                        </button>
-                      )}
+                              api
+                                .post(`/containers/${c.Id}/start`)
+                                .then(refresh)
+                                .finally(() =>
+                                  setLoadingActions((p) => ({
+                                    ...p,
+                                    [c.Id]: null,
+                                  }))
+                                );
+                            }}
+                          />
+                        )}
 
-                      {/* Restart */}
-                      <button
-                        onClick={() =>
-                          api.post(`/containers/${c.Id}/restart`).then(refresh)
-                        }
-                        className="px-3 py-1 rounded bg-yellow-700/30 border border-yellow-700/40 text-yellow-300 hover:bg-yellow-700/40 transition-all flex items-center gap-1"
-                      >
-                        <RefreshCw size={16} />
-                        Restart
-                      </button>
+                        {/* STOP */}
+                        {c.State === "running" && !loading && (
+                          <ActionButton
+                            color="red"
+                            icon={<Square size={15} />}
+                            label="Stop"
+                            onClick={() => {
+                              setLoadingActions((p) => ({
+                                ...p,
+                                [c.Id]: "stopping",
+                              }));
 
-                      {/* Logs */}
-                      <Link
-                        to={`/containers/${c.Id}/logs`}
-                        className="px-3 py-1 rounded bg-blue-700/30 border border-blue-700/40 text-blue-300 hover:bg-blue-700/40 transition-all flex items-center gap-1"
-                      >
-                        <FileText size={16} />
-                        Logs
-                      </Link>
+                              api
+                                .post(`/containers/${c.Id}/stop`)
+                                .then(refresh)
+                                .finally(() =>
+                                  setLoadingActions((p) => ({
+                                    ...p,
+                                    [c.Id]: null,
+                                  }))
+                                );
+                            }}
+                          />
+                        )}
 
-                      {/* Details */}
-                      <Link
-                        to={`/containers/${c.Id}`}
-                        className="px-3 py-1 rounded bg-gray-700/30 border border-gray-700/40 text-gray-300 hover:bg-gray-700/40 transition-all flex items-center gap-1"
-                      >
-                        <Info size={16} />
-                        Details
-                      </Link>
+                        {/* RESTART */}
+                        {!loading && (
+                          <ActionButton
+                            color="yellow"
+                            icon={<RefreshCw size={15} />}
+                            label="Restart"
+                            onClick={() => {
+                              setLoadingActions((p) => ({
+                                ...p,
+                                [c.Id]: "restarting",
+                              }));
 
-                      {/* Remove */}
-                      <button
-                        onClick={() =>
-                          api.delete(`/containers/${c.Id}`).then(refresh)
-                        }
-                        className="px-3 py-1 rounded bg-red-800/20 border border-red-800/30 text-red-300 hover:bg-red-800/30 transition-all flex items-center gap-1"
-                      >
-                        <Trash2 size={16} />
-                        Remove
-                      </button>
+                              api
+                                .post(`/containers/${c.Id}/restart`)
+                                .then(refresh)
+                                .finally(() =>
+                                  setLoadingActions((p) => ({
+                                    ...p,
+                                    [c.Id]: null,
+                                  }))
+                                );
+                            }}
+                          />
+                        )}
 
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                        {/* LOADING STATES */}
+                        {loading === "starting" && (
+                          <LoadingButton label="Starting..." color="green" />
+                        )}
+                        {loading === "stopping" && (
+                          <LoadingButton label="Stopping..." color="red" />
+                        )}
+                        {loading === "restarting" && (
+                          <LoadingButton label="Restarting..." color="yellow" />
+                        )}
+
+                        {/* LOGS */}
+                        {!loading && (
+                          <LinkActionButton
+                            color="blue"
+                            icon={<FileText size={15} />}
+                            label="Logs"
+                            to={`/containers/${c.Id}/logs`}
+                          />
+                        )}
+
+                        {/* DETAILS */}
+                        {!loading && (
+                          <LinkActionButton
+                            color="gray"
+                            icon={<Info size={15} />}
+                            label="Details"
+                            to={`/containers/${c.Id}`}
+                          />
+                        )}
+
+                        {/* REMOVE */}
+                        {!loading && (
+                          <ActionButton
+                            color="red"
+                            subtle
+                            icon={<Trash2 size={15} />}
+                            label="Remove"
+                            onClick={() => {
+                              setLoadingActions((p) => ({
+                                ...p,
+                                [c.Id]: "removing",
+                              }));
+
+                              api
+                                .delete(`/containers/${c.Id}`)
+                                .then(refresh)
+                                .finally(() =>
+                                  setLoadingActions((p) => ({
+                                    ...p,
+                                    [c.Id]: null,
+                                  }))
+                                );
+                            }}
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
+  );
+}
+
+/* ───────────────────────────────
+   REUSABLE BUTTONS
+──────────────────────────────── */
+
+function ActionButton({ icon, label, color, onClick, subtle }) {
+  const colors = {
+    green:
+      "bg-green-500/10 border-green-600/30 text-green-400 hover:bg-green-500/20",
+    red: "bg-red-500/10 border-red-600/30 text-red-400 hover:bg-red-500/20",
+    yellow:
+      "bg-yellow-500/10 border-yellow-600/30 text-yellow-300 hover:bg-yellow-500/20",
+    blue: "bg-blue-500/10 border-blue-600/30 text-blue-300 hover:bg-blue-500/20",
+    gray: "bg-gray-500/10 border-gray-600/30 text-gray-300 hover:bg-gray-500/20",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        px-3 py-1.5 rounded-lg flex items-center gap-1.5 border text-sm transition-all
+        ${colors[color]} ${subtle ? "opacity-80 hover:opacity-100" : ""}
+      `}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function LinkActionButton({ icon, label, color, to }) {
+  const colors = {
+    blue: "bg-blue-500/10 border-blue-600/30 text-blue-300 hover:bg-blue-500/20",
+    gray: "bg-gray-500/10 border-gray-600/30 text-gray-300 hover:bg-gray-500/20",
+  };
+
+  return (
+    <Link
+      to={to}
+      className={`
+        px-3 py-1.5 rounded-lg flex items-center gap-1.5 border
+        text-sm transition-all
+        ${colors[color]}
+      `}
+    >
+      {icon}
+      {label}
+    </Link>
+  );
+}
+
+function LoadingButton({ label, color }) {
+  const colors = {
+    red: "bg-red-500/10 border-red-600/30 text-red-400",
+    green: "bg-green-500/10 border-green-600/30 text-green-400",
+    yellow: "bg-yellow-500/10 border-yellow-600/30 text-yellow-300",
+    blue: "bg-blue-500/10 border-blue-600/30 text-blue-300",
+    gray: "bg-gray-500/10 border-gray-600/30 text-gray-300",
+  };
+
+  return (
+    <div
+      className={`
+        px-3 py-1.5 rounded-lg flex items-center gap-2 border text-sm
+        ${colors[color]} animate-pulse
+      `}
+    >
+      <Spinner size={14} />
+      {label}
+    </div>
+  );
+}
+
+function Spinner({ size = 14 }) {
+  return (
+    <div
+      className="border-2 border-t-transparent border-current rounded-full animate-spin"
+      style={{
+        width: size,
+        height: size,
+        borderTopColor: "transparent",
+      }}
+    />
   );
 }
