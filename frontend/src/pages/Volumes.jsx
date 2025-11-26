@@ -123,8 +123,14 @@ export default function Volumes() {
                   {v.Driver}
                 </td>
 
-                {/* MOUNTPOINT */}
-                <td className="px-5 py-4 text-sm text-[var(--txt-secondary)]">
+                {/* MOUNTPOINT — with ellipsis */}
+                <td
+                  className="
+                    px-5 py-4 text-sm text-[var(--txt-secondary)]
+                    max-w-[280px] overflow-hidden text-ellipsis whitespace-nowrap
+                  "
+                  title={v.Mountpoint}
+                >
                   {v.Mountpoint}
                 </td>
 

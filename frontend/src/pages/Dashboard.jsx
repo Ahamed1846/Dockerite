@@ -1,4 +1,6 @@
 import useSystemSummary from "../hooks/useSystemSummary";
+import useDockerStatus from "../hooks/useDockerStatus";
+
 import {
   Cpu,
   HardDrive,
@@ -10,7 +12,6 @@ import {
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
-
 import DockerOffline from "../components/DockerOffline";
 
 import { Doughnut } from "react-chartjs-2";
@@ -18,18 +19,23 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function Dashboard() {
-  const { summary, loading, error, refresh } = useSystemSummary();
+  const { summary, loading, refresh } = useSystemSummary();
+  const { dockerDown, checking, refreshDockerStatus } = useDockerStatus();
 
-  /* LOADING */
-  if (loading)
+  /* UNIFIED LOADING */
+  if (loading || checking)
     return (
       <div className="p-10 text-xl text-[var(--txt-secondary)]">
         Loading...
       </div>
     );
 
-  /* DOCKER OFFLINE */
-  if (error || !summary) return <DockerOffline retry={refresh} />;
+  /* UNIFIED DOCKER OFFLINE */
+  if (dockerDown) return <DockerOffline onRetry={refreshDockerStatus} />;
+
+  /* If systemSummary fails */
+  if (!summary)
+    return <DockerOffline onRetry={refreshDockerStatus} />;
 
   const chartData = {
     labels: ["Running", "Stopped"],
@@ -106,7 +112,7 @@ export default function Dashboard() {
               title="Volumes"
               subtitle="Data volumes"
               value={summary.volumes}
-              icon={<HardDrive size={22}/>}
+              icon={<HardDrive size={22} />}
             />
 
             <ClickableBigCard
@@ -114,11 +120,11 @@ export default function Dashboard() {
               title="Networks"
               subtitle="Available networks"
               value={summary.networks}
-              icon={<Network size={22}/>}
+              icon={<Network size={22} />}
             />
           </div>
 
-          {/* METRIC GRID */}
+          {/* METRICS */}
           <div className="grid sm:grid-cols-3 gap-6">
             <MetricCard
               title="Running"
@@ -143,7 +149,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* RIGHT – CHART */}
+        {/* RIGHT — CHART */}
         <div
           className="
             bg-[var(--bg-secondary)]
@@ -178,9 +184,9 @@ export default function Dashboard() {
   );
 }
 
-/* ───────────────────────────────
+/* ================================================
    CLICKABLE BIG CARD
-──────────────────────────────── */
+================================================ */
 
 function ClickableBigCard({ to, icon, title, subtitle, value }) {
   return (
@@ -223,7 +229,9 @@ function ClickableBigCard({ to, icon, title, subtitle, value }) {
   );
 }
 
-/* ─────────────────────────────── */
+/* ================================================
+   METRIC CARD
+================================================ */
 
 function MetricCard({ icon, title, value }) {
   return (

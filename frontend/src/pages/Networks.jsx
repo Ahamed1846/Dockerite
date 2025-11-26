@@ -1,4 +1,6 @@
 import useNetworks from "../hooks/useNetworks";
+import useDockerStatus from "../hooks/useDockerStatus";
+
 import { Link } from "react-router-dom";
 import { Network, Trash2, Plus, RefreshCw } from "lucide-react";
 import { api } from "../lib/api";
@@ -7,19 +9,25 @@ import CreateNetworkModal from "../components/CreateNetworkModal";
 import DockerOffline from "../components/DockerOffline";
 
 export default function Networks() {
-  const { networks, loading, error, refresh } = useNetworks();
+  const { networks, loading, refresh } = useNetworks();
+  const { dockerDown, checking, refreshDockerStatus } = useDockerStatus();
+
   const [open, setOpen] = useState(false);
 
-  /* LOADING */
-  if (loading)
+  /* UNIFIED LOADING */
+  if (loading || checking)
     return (
       <div className="p-10 text-xl text-[var(--txt-secondary)]">
         Loading networks...
       </div>
     );
 
-  /* DOCKER OFFLINE */
-  if (error || !networks) return <DockerOffline onRetry={refresh} />;
+  /* UNIFIED DOCKER OFFLINE HANDLING */
+  if (dockerDown) return <DockerOffline onRetry={refreshDockerStatus} />;
+
+  /* NETWORK DATA MISSING */
+  if (!networks)
+    return <DockerOffline onRetry={refreshDockerStatus} />;
 
   return (
     <div className="text-[var(--txt-primary)] space-y-10 pb-20">
@@ -100,7 +108,7 @@ export default function Networks() {
                 <td className="px-5 py-4 font-medium">
                   <Link
                     to={`/networks/${net.Id}`}
-                    className="hover:text-[var(--accent-blue)] transition underline"
+                    className="hover:text-[var(--accent-blue)] transition"
                   >
                     {net.Name}
                   </Link>

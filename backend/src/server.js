@@ -30,5 +30,7 @@ io.on("connection", (socket) => {
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`Dockerite backend running at http://localhost:${PORT}`);
+  console.log(`🐳 Dockerite is running at http://localhost:${PORT}`);
+  console.log(`   Frontend: http://localhost:${PORT}`);
+  console.log(`   Backend API: http://localhost:${PORT}/api`);
 });

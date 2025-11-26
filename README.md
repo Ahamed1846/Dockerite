@@ -70,7 +70,47 @@ dockerite/
 
 ## Getting Started
 
-### Backend
+### Option 1: Docker (Build Locally)
+
+Clone the repository and build the image locally:
+
+```bash
+git clone <your-repo-url>
+cd Dockerite
+docker-compose up --build
+```
+
+Once the container is running, access Dockerite at:
+`http://localhost:5000`
+
+### Option 2: Docker (Pre-built Image from Registry)
+
+If you don't want to clone the repo, simply pull the pre-built image:
+
+```bash
+docker run -d \
+  --name dockerite \
+  -p 5000:5000 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e NODE_ENV=production \
+  ahamed1846/dockerite:latest
+```
+
+Or using docker-compose:
+
+```bash
+curl https://raw.githubusercontent.com/Ahamed1846/Dockerite/main/docker-compose.registry.yml -o docker-compose.yml
+docker-compose up
+```
+
+Then access Dockerite at:
+`http://localhost:5000`
+
+### Option 3: Local Development
+
+Run frontend and backend separately for development:
+
+#### Backend
 
 ```bash
 cd backend
@@ -81,7 +121,7 @@ npm run dev
 The backend runs at:
 `http://localhost:5000`
 
-### Frontend
+#### Frontend
 
 ```bash
 cd frontend
