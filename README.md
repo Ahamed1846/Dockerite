@@ -1,46 +1,23 @@
 # Dockerite
 
+![Node.js](https://img.shields.io/badge/Node.js-18+-lightgrey)
+![React](https://img.shields.io/badge/React-18-blue)
+![Dockerode](https://img.shields.io/badge/Dockerode-API-lightblue)
+![Socket.IO](https://img.shields.io/badge/Socket.IO-Realtime-black)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
+
 Dockerite is a modern, real-time Docker management dashboard built with Node.js, Express, Dockerode, Socket.IO, React, Vite, and Tailwind CSS.
 
 It provides a full interface to inspect, manage, monitor, and control Docker containers, images, and system-level information with real-time updates and a clean developer-friendly UI.
 
 ## Features
 
-### Containers
-
-* List all containers with clean status indicators
-* Start, stop, restart, and remove containers
-* View container logs in real-time
-* Detailed container inspection page
-* Quick navigation to logs or details
-* Create new containers through a fully interactive modal (name, image, ports, env)
-
-### Images
-
-* List Docker images
-* Pull new images with real-time progress updates
-* Remove images
-* Clean, consistent UI
-
-### Logs
-
-* Real-time log streaming via WebSockets
-* Color-coded log levels (info/warn/error)
-* Auto-scroll toggle
-* Clear log output
-* Sticky header inside terminal
-
-### Stats
-
-* Live CPU and memory usage (WebSockets)
-* Smooth line charts for usage over time
-* Stats integrated directly into container detail page
-
-### Dashboard
-
-* System summary (running containers, stopped containers, total images, OS, kernel, architecture)
-* Running vs stopped container chart
-* Clean, functional overview layout
+* Real-time container management (start/stop/restart/remove)
+* Live logs & stats streaming via WebSockets
+* Container inspection & analytics
+* Image, volume, and network management
+* Advanced Create Container workflow
+* Modern, responsive UI
 
 ## Tech Stack
 
@@ -60,21 +37,9 @@ It provides a full interface to inspect, manage, monitor, and control Docker con
 * Tailwind CSS
 * React Router
 * Lucide Icons
-* Recharts
 * Chart.js
 * Socket.IO Client
 
-## Architecture Diagram
-
-```
-[Frontend: React + Tailwind + Socket.IO]
-            |
-        (HTTP + WS)
-            |
-[Backend: Node.js + Express + Dockerode]
-            |
-       [Docker Engine API]
-```
 
 ## Project Structure
 
@@ -106,7 +71,47 @@ dockerite/
 
 ## Getting Started
 
-### Backend
+### Option 1: Docker (Build Locally)
+
+Clone the repository and build the image locally:
+
+```bash
+git clone <your-repo-url>
+cd Dockerite
+docker-compose up --build
+```
+
+Once the container is running, access Dockerite at:
+`http://localhost:5000`
+
+### Option 2: Docker (Pre-built Image from Registry)
+
+If you don't want to clone the repo, simply pull the pre-built image:
+
+```bash
+docker run -d \
+  --name dockerite \
+  -p 5000:5000 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e NODE_ENV=production \
+  ahamed1846/dockerite:latest
+```
+
+Or using docker-compose:
+
+```bash
+curl https://raw.githubusercontent.com/Ahamed1846/Dockerite/main/docker-compose.registry.yml -o docker-compose.yml
+docker-compose up
+```
+
+Then access Dockerite at:
+`http://localhost:5000`
+
+### Option 3: Local Development
+
+Run frontend and backend separately for development:
+
+#### Backend
 
 ```bash
 cd backend
@@ -117,7 +122,7 @@ npm run dev
 The backend runs at:
 `http://localhost:5000`
 
-### Frontend
+#### Frontend
 
 ```bash
 cd frontend
@@ -134,17 +139,3 @@ The frontend runs at:
 * Node.js 18+
 * Any modern OS (Linux/Mac/Windows)
 
-## Why This Project Is Useful
-
-Dockerite demonstrates practical knowledge in:
-
-* Real-time systems
-* Docker Engine APIs
-* Streaming data
-* Graphs and analytics
-* WebSockets
-* Full-stack architecture
-* Production-level UI/UX patterns
-* Docker lifecycle and containerization concepts
-
-It's a strong project to display in a portfolio or resume for backend, frontend, or full-stack roles.

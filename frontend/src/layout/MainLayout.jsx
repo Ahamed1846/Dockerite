@@ -17,7 +17,7 @@ export default function MainLayout() {
       {/* Sidebar */}
       <aside
         className="
-          w-72 bg-(--bg-secondary)
+          w-64 bg-(--bg-secondary)
           border-r border-(--border-color)
           p-8 flex flex-col
         "
