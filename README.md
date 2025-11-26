@@ -40,7 +40,6 @@ It provides a full interface to inspect, manage, monitor, and control Docker con
 * Chart.js
 * Socket.IO Client
 
-
 ## Project Structure
 
 ```
@@ -138,4 +137,3 @@ The frontend runs at:
 * Docker Engine or Docker Desktop
 * Node.js 18+
 * Any modern OS (Linux/Mac/Windows)
-
